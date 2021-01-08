@@ -8,3 +8,5 @@ on other computers use curl localhost/127.0.0.1/nick_name
 or on browser http://localhost/127.0.0.1/nick_name
 
 sample of sqlite3 
+address.sqlite is the database to use
+this is only a sample of use of sqlite

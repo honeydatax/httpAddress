@@ -1,0 +1,98 @@
+' Gambas class file
+
+Public $con As Connection
+Public fills As String = "address.sqlite"
+Public Clients As Object[]
+Public Srv As ServerSocket
+Public paths As String = "/home/pi/address"
+Public Tport As Integer = 8080
+Public Sub Socket_Read()
+  Dim kl As String
+  Dim rs As Result
+  Dim seps As String[]
+  Dim ee As Integer
+  Dim vv As String
+  Dim v As String
+  Dim f1 As File
+  Dim f2 As File
+  Dim i As Integer
+  Dim scad As String
+  ee = 0
+  Read #Last, scad, Lof(Last)
+  i = InStr(scad, "GET /")
+  If i < 1 Then Error.Raise("error")
+  i = InStr(scad, "HTTP/1.")
+  If i < 1 Then Error.Raise("error")
+  scad = Replace(scad, "GET ", "") 
+  scad = Replace(scad, "HTTP/1.", "")
+  i = InStr(scad, "/")
+  If i < 1 Then
+      Error.Raise("error")
+    Else
+      scad = Mid(scad, i)
+  Endif
+  i = InStr(scad, " ")
+  If i < 1 Then
+      Error.Raise("error")
+    Else
+      scad = Mid(scad, 1, i - 1)
+  Endif
+  Print Time(); ":"; scad
+  ee = 1 
+  seps = Split(scad, "/")
+  If seps.Count <> 3 Then
+      Error.Raise("error")
+  Endif
+  scad = Trim(seps[1])
+  kl = "delete from address where ips='" & scad & "';"
+  $con.Exec(kl)  
+  kl = "insert into address (ips,nick_name) values ('" & scad & "' ,'" & seps[2] & "');"
+  $con.Exec(kl)  
+  kl = "select * from address;"
+  rs = $con.Exec(kl)
+  v = ""
+  While (rs.Available)
+      v = v & rs!ips & ":" & rs!nick_name & gb.CrLf 
+      rs.MoveNext()
+  Wend
+  ee = 0
+   Write #Last, v, Len(v)
+   Close #Last
+  Finally 
+    If ee = 1 Then
+     Close Last
+    End If
+  Catch 
+    'Write #Last, "error\r\n", 9
+End
+Public Sub Socket_closed()
+  Print "closed..."
+  Clients.Remove(Clients.Find(Last))  
+End
+Public Sub Srv_Connection(Host As String)
+  Dim mysock As Socket
+  Print Host; ">>>"
+  mysock = Srv.Accept()
+  Clients.Add(mysock)     
+End
+Public Sub _New()
+  Dim f1 As File
+  $con = New Connection
+  Clients = New Object[]
+  Srv = New ServerSocket As "Srv"
+  Srv.Port = Tport
+  Srv.Type = Net.Internet
+ 
+  If Not Exist(Application.Path & "/" & fills) Then 
+    f1 = Open Application.Path & "/" & fills For Output Create
+    Print #1, ""
+    Close f1
+  Endif
+  Try $con.Close()
+  $con.Type = "sqlite3"
+  $con.host = Application.Path
+  $con.name = fills
+  $con.Open()
+  $con.Exec("Create table if not exists address(ips TEXT,nick_name Text);")
+  Srv.Listen()
+End

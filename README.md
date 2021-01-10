@@ -16,3 +16,5 @@ Useful if you want to create a group of http
 Users and create a dns to this group
 Any user can resister is ip and name or nick
 On private dns server
+And get a list of ip in current use by resister is ip
+

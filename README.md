@@ -11,3 +11,8 @@ sample of sqlite3
 address.sqlite is the database to use
 this is only a sample of use of sqlite
 Dns manual list
+
+Useful if you want to create a group of http
+Users and create a dns to this group
+Any user can resister is ip and name or nick
+On private dns server
